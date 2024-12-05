@@ -31,7 +31,7 @@ const initialModel: Model = {
   colors: [],
 };
 
-export const ParamEditor: React.FC = () => {
+export const App: React.FC = () => {
   const [paramValues, setParamValues] = useState<ParamValue[]>(
     initialModel.paramValues
   );
