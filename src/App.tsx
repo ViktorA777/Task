@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import "./App.css";
+import { modelService } from "./api/modelService";
 
 interface Param {
   id: number;
@@ -8,12 +9,12 @@ interface Param {
   type: "string";
 }
 
-interface ParamValue {
+export interface ParamValue {
   paramId: number;
   value: string;
 }
 
-interface Model {
+export interface Model {
   paramValues: ParamValue[];
   colors: string[];
 }
@@ -36,6 +37,8 @@ export const App: React.FC = () => {
     initialModel.paramValues
   );
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleChange = (paramId: number, newValue: string) => {
     setParamValues((prevState) =>
       prevState.map((paramValue) =>
@@ -46,37 +49,44 @@ export const App: React.FC = () => {
     );
   };
 
-  const getModel = (): Model => {
-    return {
-      paramValues,
-      colors: [],
-    };
+  const fetchModel = async () => {
+    setIsLoading(true);
+    try {
+      const model = await modelService.getModel(paramValues);
+      console.log("Модель:", model);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    console.log("Модель:", getModel());
+    fetchModel();
   }, [paramValues]);
 
   return (
     <>
-      <div className="param">
-        {params.map((param) => {
-          const currentValue = paramValues.find(
-            (value) => value.paramId === param.id
-          )?.value;
+      {isLoading ? (
+        <div>Загрузка...</div>
+      ) : (
+        <div className="param">
+          {params.map((param) => {
+            const currentValue = paramValues.find(
+              (value) => value.paramId === param.id
+            )?.value;
 
-          return (
-            <div className="content" key={param.id}>
-              <label>{param.name}</label>
-              <input
-                type="text"
-                value={currentValue || ""}
-                onChange={(e) => handleChange(param.id, e.target.value)}
-              />
-            </div>
-          );
-        })}
-      </div>
+            return (
+              <div className="content" key={param.id}>
+                <label>{param.name}</label>
+                <input
+                  type="text"
+                  value={currentValue || ""}
+                  onChange={(e) => handleChange(param.id, e.target.value)}
+                />
+              </div>
+            );
+          })}
+        </div>
+      )}
     </>
   );
 };
